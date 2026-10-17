@@ -37,25 +37,46 @@ function registerUser(ctx) {
   saveDB();
 }
 
-// أمر /start لفتح المحتوى ورسالة الترحيب وإظهار الأزرار على الشاشة فوراً
+// أمر /start مع إظهار زر الإحصائيات للآدمن فقط
 bot.command("start", async (ctx) => {
   registerUser(ctx);
 
-  // إظهار الأزرار على الشاشة تلقائياً
   const keyboard = new Keyboard()
     .webApp("هذه سبيلي | لأبي علي الأنباري 📱", WEB_APP_URL)
     .row()
-    .text("📩 تواصل مع الإدارة")
-    .resized();
+    .text("📩 تواصل مع الإدارة");
 
- await ctx.reply(
+  // إذا كان المستخدم هو الأدمن، نُضيف له زر الإحصائيات
+  if (ctx.from.id === ADMIN_ID) {
+    keyboard.row().text("📊 الإحصائيات");
+  }
+
+  keyboard.resized();
+
+  await ctx.reply(
     `السلام عليكم ورحمة الله وبركاته\nأهلاً بك يا ${ctx.from.first_name} على قناة هذه سبيلي المتخصصة في نشر تراث الشيخ الأنباري تقبله الله\n\nلا تنسونا من صالح الدعاء`,
     { reply_markup: keyboard }
   );
+});
+
+// عند الضغط على زر الإحصائيات أو كتابة /stats
+bot.hears("📊 الإحصائيات", async (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+
+  const totalUsers = Object.keys(db.users).length;
+  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+  const activeUsers = Object.values(db.users).filter(
+    (u) => u.lastActive > oneDayAgo
+  ).length;
+
+  await ctx.reply(
+    `📈 **إحصائيات البوت (الإدارة):**\n\n` +
+      `👥 **إجمالي المستخدمين:** ${totalUsers}\n` +
+      `⚡ **النشطين خلال 24 ساعة:** ${activeUsers}\n\n` +
+      `للإرسال الجماعي، قم بعمل Reply على أي رسالة واكتب \`/broadcast\``
   );
 });
 
-// أمر الإحصائيات خاص بالأدمن
 bot.command("stats", async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
 
@@ -76,7 +97,7 @@ bot.command("stats", async (ctx) => {
 bot.hears("📩 تواصل مع الإدارة", async (ctx) => {
   registerUser(ctx);
   await ctx.reply(
-    "أهلاً بك! يمكنك إرسال استفسارك أو رسالتك الآن وسيقوم فريق الإدارة بالرد عليك فوراً."
+    "أهلاً بك! يمكنك إرسال استفسارك أو رسالتك الآن (نص، صورة، فيديو، أو صوت) وسيقوم فريق الإدارة بالرد عليك فوراً."
   );
 });
 
