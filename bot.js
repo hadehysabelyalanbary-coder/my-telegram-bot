@@ -1,4 +1,4 @@
-const { Bot, InlineKeyboard } = require("grammy");
+const { Bot, Keyboard } = require("grammy");
 const fs = require("fs");
 
 const BOT_TOKEN = "8704729964:AAGBjFRl7XNmc6oOfL4fw5Z4gEdWVO-EM3M";
@@ -37,18 +37,21 @@ function registerUser(ctx) {
   saveDB();
 }
 
-// أمر /start لفتح المحتوى مباشرة عبر زر مدمج تحت الرسالة
+// أمر /start لفتح المحتوى ورسالة الترحيب وإظهار الأزرار على الشاشة فوراً
 bot.command("start", async (ctx) => {
   registerUser(ctx);
 
-  const inlineKeyboard = new InlineKeyboard()
-    .webApp("📱 تصفح المحتوى الآن (هذه سبيلي)", WEB_APP_URL)
+  // إظهار الأزرار على الشاشة تلقائياً
+  const keyboard = new Keyboard()
+    .webApp("هذه سبيلي | لأبي علي الأنباري 📱", WEB_APP_URL)
     .row()
-    .url("📩 تواصل مع الإدارة", `tg://user?id=${ADMIN_ID}`);
+    .text("📩 تواصل مع الإدارة")
+    .resized();
 
   await ctx.reply(
-    `السلام عليكم ورحمة الله وبركاته\nأهلاً بك / بكِ يا ${ctx.from.first_name} على قناة هذه سبيلي\n\nاضغط على الزر أدناه لتصفح المحتوى مباشرة 👇\n\nلا تنسونا من صالح الدعاء`,
-    { reply_markup: inlineKeyboard }
+    `السلام عليكم ورحمة الله وبركاته\nأهلاً بك / بكِ يا ${ctx.from.first_name} 
+     على قناة هذه سبيلي المتخصصة في نشر تراث الشيخ الأنباري "تقبله الله"\n\nلا تنسونا من صالح الدعاء`,
+    { reply_markup: keyboard }
   );
 });
 
@@ -67,6 +70,13 @@ bot.command("stats", async (ctx) => {
       `👥 **إجمالي المستخدمين:** ${totalUsers}\n` +
       `⚡ **النشطين خلال 24 ساعة:** ${activeUsers}\n\n` +
       `للإرسال الجماعي، قم بعمل Reply على أي رسالة واكتب \`/broadcast\``
+  );
+});
+
+bot.hears("📩 تواصل مع الإدارة", async (ctx) => {
+  registerUser(ctx);
+  await ctx.reply(
+    "أهلاً بك! يمكنك إرسال استفسارك أو رسالتك الآن وسيقوم فريق الإدارة بالرد عليك فوراً."
   );
 });
 
@@ -106,7 +116,7 @@ bot.on("message", async (ctx) => {
     return ctx.reply(`📢 **اكتمل الإرسال الجماعي:**\n✅ تم بنجاح: ${success}\n❌ فشل: ${fail}`);
   }
 
-  // إذا أرسل المستخدم رسالة عادية للادارة
+  // إذا أرسل المستخدم رسالة عادية للإدارة
   if (userId !== ADMIN_ID) {
     const forwarded = await ctx.api.forwardMessage(
       ADMIN_ID,
