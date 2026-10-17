@@ -1,4 +1,4 @@
-const { Bot, InlineKeyboard, Keyboard } = require("grammy");
+const { Bot, InlineKeyboard } = require("grammy");
 const fs = require("fs");
 
 const BOT_TOKEN = "8704729964:AAGBjFRl7XNmc6oOfL4fw5Z4gEdWVO-EM3M";
@@ -37,24 +37,22 @@ function registerUser(ctx) {
   saveDB();
 }
 
-// أمر /start للمستخدمين
+// أمر /start لفتح المحتوى مباشرة عبر زر مدمج تحت الرسالة
 bot.command("start", async (ctx) => {
   registerUser(ctx);
 
-  // الأزرار المتاحة للزبائن/المستخدمين (بدون زر الإحصائيات)
-  const keyboard = new Keyboard()
-    .webApp("هذه سبيلي | لأبي علي الأنباري", WEB_APP_URL)
+  const inlineKeyboard = new InlineKeyboard()
+    .webApp("📱 تصفح المحتوى الآن (هذه سبيلي)", WEB_APP_URL)
     .row()
-    .text("📩 تواصل مع الإدارة")
-    .resized();
+    .url("📩 تواصل مع الإدارة", `tg://user?id=${ADMIN_ID}`);
 
   await ctx.reply(
-    `السلام عليكم ورحمة الله وبركاته\nأهلاً بك / بكِ يا ${ctx.from.first_name} على قناة هذه سبيلي\n\nلا تنسونا من صالح الدعاء`,
-    { reply_markup: keyboard }
+    `السلام عليكم ورحمة الله وبركاته\nأهلاً بك / بكِ يا ${ctx.from.first_name} على قناة هذه سبيلي\n\nاضغط على الزر أدناه لتصفح المحتوى مباشرة 👇\n\nلا تنسونا من صالح الدعاء`,
+    { reply_markup: inlineKeyboard }
   );
 });
 
-// أمر الإحصائيات خاص بالأدمن فقط عبر الأمر /stats
+// أمر الإحصائيات خاص بالأدمن
 bot.command("stats", async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
 
@@ -72,18 +70,11 @@ bot.command("stats", async (ctx) => {
   );
 });
 
-bot.hears("📩 تواصل مع الإدارة", async (ctx) => {
-  registerUser(ctx);
-  await ctx.reply(
-    "أهلاً بك! يمكنك إرسال استفسارك أو رسالتك الآن (نص، صورة، فيديو، أو صوت) وسيقوم فريق الإدارة بالرد عليك فوراً."
-  );
-});
-
 bot.on("message", async (ctx) => {
   registerUser(ctx);
   const userId = ctx.from.id;
 
-  // رد الأدمن على رسائل الدعم
+  // رد الأدمن على الزبائن
   if (userId === ADMIN_ID && ctx.message.reply_to_message) {
     const targetUserId = db.supportMap[ctx.message.reply_to_message.message_id];
     if (targetUserId) {
@@ -115,7 +106,7 @@ bot.on("message", async (ctx) => {
     return ctx.reply(`📢 **اكتمل الإرسال الجماعي:**\n✅ تم بنجاح: ${success}\n❌ فشل: ${fail}`);
   }
 
-  // رسائل الدعم من المستخدمين للآدمن
+  // إذا أرسل المستخدم رسالة عادية للادارة
   if (userId !== ADMIN_ID) {
     const forwarded = await ctx.api.forwardMessage(
       ADMIN_ID,
@@ -125,19 +116,8 @@ bot.on("message", async (ctx) => {
     db.supportMap[forwarded.message_id] = userId;
     saveDB();
 
-    const interactions = new InlineKeyboard()
-      .text("👍", "like")
-      .text("❤️", "love")
-      .text("💬 تم الاستلام", "received");
-
-    await ctx.reply("✅ تم إيصال رسالتك للإدارة، وسنرد عليك في أقرب وقت.", {
-      reply_markup: interactions,
-    });
+    await ctx.reply("✅ تم إيصال رسالتك للإدارة، وسنرد عليك في أقرب وقت.");
   }
-});
-
-bot.on("callback_query:data", async (ctx) => {
-  await ctx.answerCallbackQuery({ text: `شكراً لتفاعلك!` });
 });
 
 bot.start();
