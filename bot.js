@@ -37,26 +37,26 @@ function registerUser(ctx) {
   saveDB();
 }
 
+// أمر /start للمستخدمين
 bot.command("start", async (ctx) => {
   registerUser(ctx);
 
+  // الأزرار المتاحة للزبائن/المستخدمين (بدون زر الإحصائيات)
   const keyboard = new Keyboard()
-    .webApp("📱 فتح التطبيق / الموقع", WEB_APP_URL)
+    .webApp("هذه سبيلي | لأبي علي الأنباري", WEB_APP_URL)
     .row()
     .text("📩 تواصل مع الإدارة")
-    .text("📊 الإحصائيات (للأدمن)")
     .resized();
 
   await ctx.reply(
-    `أهلاً بك يا ${ctx.from.first_name} في البوت الخاص بنا! 👋\n\nيمكنك تصفح المحتوى كاملاً مباشرة داخل تلغرام عبر الزر أدناه.`,
+    `السلام عليكم ورحمة الله وبركاته\nأهلاً بك / بكِ يا ${ctx.from.first_name} على قناة هذه سبيلي\n\nلا تنسونا من صالح الدعاء`,
     { reply_markup: keyboard }
   );
 });
 
-bot.hears("📊 الإحصائيات (للأدمن)", async (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) {
-    return ctx.reply("عذراً، هذا الخيار مخصص لإدارة البوت فقط.");
-  }
+// أمر الإحصائيات خاص بالأدمن فقط عبر الأمر /stats
+bot.command("stats", async (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
 
   const totalUsers = Object.keys(db.users).length;
   const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
@@ -65,7 +65,7 @@ bot.hears("📊 الإحصائيات (للأدمن)", async (ctx) => {
   ).length;
 
   await ctx.reply(
-    `📈 **إحصائيات البوت:**\n\n` +
+    `📈 **إحصائيات البوت (الإدارة):**\n\n` +
       `👥 **إجمالي المستخدمين:** ${totalUsers}\n` +
       `⚡ **النشطين خلال 24 ساعة:** ${activeUsers}\n\n` +
       `للإرسال الجماعي، قم بعمل Reply على أي رسالة واكتب \`/broadcast\``
@@ -83,6 +83,7 @@ bot.on("message", async (ctx) => {
   registerUser(ctx);
   const userId = ctx.from.id;
 
+  // رد الأدمن على رسائل الدعم
   if (userId === ADMIN_ID && ctx.message.reply_to_message) {
     const targetUserId = db.supportMap[ctx.message.reply_to_message.message_id];
     if (targetUserId) {
@@ -92,6 +93,7 @@ bot.on("message", async (ctx) => {
     }
   }
 
+  // إرسال جماعي (Broadcast) للأدمن
   if (userId === ADMIN_ID && ctx.message.text && ctx.message.text.startsWith("/broadcast")) {
     const messageToBroadCast = ctx.message.reply_to_message;
     if (!messageToBroadCast) {
@@ -113,6 +115,7 @@ bot.on("message", async (ctx) => {
     return ctx.reply(`📢 **اكتمل الإرسال الجماعي:**\n✅ تم بنجاح: ${success}\n❌ فشل: ${fail}`);
   }
 
+  // رسائل الدعم من المستخدمين للآدمن
   if (userId !== ADMIN_ID) {
     const forwarded = await ctx.api.forwardMessage(
       ADMIN_ID,
