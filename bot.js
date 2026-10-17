@@ -1,4 +1,5 @@
 const { Bot, Keyboard } = require("grammy");
+const http = require("http");
 const fs = require("fs");
 
 const BOT_TOKEN = "8704729964:AAGBjFRl7XNmc6oOfL4fw5Z4gEdWVO-EM3M";
@@ -46,7 +47,6 @@ bot.command("start", async (ctx) => {
     .row()
     .text("📩 تواصل مع الإدارة");
 
-  // إذا كان المستخدم هو الأدمن، نُضيف له زر الإحصائيات
   if (ctx.from.id === ADMIN_ID) {
     keyboard.row().text("📊 الإحصائيات");
   }
@@ -59,7 +59,6 @@ bot.command("start", async (ctx) => {
   );
 });
 
-// عند الضغط على زر الإحصائيات أو كتابة /stats
 bot.hears("📊 الإحصائيات", async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
 
@@ -105,7 +104,6 @@ bot.on("message", async (ctx) => {
   registerUser(ctx);
   const userId = ctx.from.id;
 
-  // رد الأدمن على الزبائن
   if (userId === ADMIN_ID && ctx.message.reply_to_message) {
     const targetUserId = db.supportMap[ctx.message.reply_to_message.message_id];
     if (targetUserId) {
@@ -115,7 +113,6 @@ bot.on("message", async (ctx) => {
     }
   }
 
-  // إرسال جماعي (Broadcast) للأدمن
   if (userId === ADMIN_ID && ctx.message.text && ctx.message.text.startsWith("/broadcast")) {
     const messageToBroadCast = ctx.message.reply_to_message;
     if (!messageToBroadCast) {
@@ -137,7 +134,6 @@ bot.on("message", async (ctx) => {
     return ctx.reply(`📢 **اكتمل الإرسال الجماعي:**\n✅ تم بنجاح: ${success}\n❌ فشل: ${fail}`);
   }
 
-  // إذا أرسل المستخدم رسالة عادية للإدارة
   if (userId !== ADMIN_ID) {
     const forwarded = await ctx.api.forwardMessage(
       ADMIN_ID,
@@ -149,6 +145,15 @@ bot.on("message", async (ctx) => {
 
     await ctx.reply("✅ تم إيصال رسالتك للإدارة، وسنرد عليك في أقرب وقت.");
   }
+});
+
+// خادم وهمي لإرضاء منصة Render لتبقى الخدمة قيد التشغيل 100%
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("Bot is running perfectly!");
+}).listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}`);
 });
 
 bot.start();
