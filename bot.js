@@ -59,44 +59,40 @@ bot.command("start", async (ctx) => {
   );
 });
 
-bot.hears("📊 الإحصائيات", async (ctx) => {
+// دالة لحساب وعرض الإحصائيات (شاملة الشهر واليوم)
+async function sendStats(ctx) {
   if (ctx.from.id !== ADMIN_ID) return;
 
+  const now = Date.now();
+  const oneDayAgo = now - 24 * 60 * 60 * 1000;
+  const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+
   const totalUsers = Object.keys(db.users).length;
-  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-  const activeUsers = Object.values(db.users).filter(
+  
+  const active24h = Object.values(db.users).filter(
     (u) => u.lastActive > oneDayAgo
+  ).length;
+
+  const active30d = Object.values(db.users).filter(
+    (u) => u.lastActive > thirtyDaysAgo
   ).length;
 
   await ctx.reply(
     `📈 **إحصائيات البوت (الإدارة):**\n\n` +
-      `👥 **إجمالي المستخدمين:** ${totalUsers}\n` +
-      `⚡ **النشطين خلال 24 ساعة:** ${activeUsers}\n\n` +
+      `👥 **إجمالي المشتركين:** ${totalUsers}\n` +
+      `📅 **النشطين خلال آخر 30 يوماً:** ${active30d}\n` +
+      `⚡ **النشطين خلال آخر 24 ساعة:** ${active24h}\n\n` +
       `للإرسال الجماعي، قم بعمل Reply على أي رسالة واكتب \`/broadcast\``
   );
-});
+}
 
-bot.command("stats", async (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-
-  const totalUsers = Object.keys(db.users).length;
-  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-  const activeUsers = Object.values(db.users).filter(
-    (u) => u.lastActive > oneDayAgo
-  ).length;
-
-  await ctx.reply(
-    `📈 **إحصائيات البوت (الإدارة):**\n\n` +
-      `👥 **إجمالي المستخدمين:** ${totalUsers}\n` +
-      `⚡ **النشطين خلال 24 ساعة:** ${activeUsers}\n\n` +
-      `للإرسال الجماعي، قم بعمل Reply على أي رسالة واكتب \`/broadcast\``
-  );
-});
+bot.hears("📊 الإحصائيات", sendStats);
+bot.command("stats", sendStats);
 
 bot.hears("📩 تواصل مع الإدارة", async (ctx) => {
   registerUser(ctx);
   await ctx.reply(
-    "أهلاً بك! يمكنك إرسال استفسارك أو رسالتك الآن (نص، صورة، فيديو، أو صوت) وسيقوم فريق الإدارة بالرد عليك فوراً."
+    "أهلاً بك! يمكنك إرسال استفسارك أو رسالتك الآن، وسيقوم فريق الإدارة بالرد عليك فوراً."
   );
 });
 
@@ -143,11 +139,11 @@ bot.on("message", async (ctx) => {
     db.supportMap[forwarded.message_id] = userId;
     saveDB();
 
-    await ctx.reply("✅ تم إيصال رسالتك للإدارة، وسنرد عليك في أقرب وقت.");
+    await ctx.reply("✅  تم إيصال رسالتك للإدارة، وسنرد عليك في أقرب وقت إن يسَّر الله.");
   }
 });
 
-// خادم وهمي لإرضاء منصة Render لتبقى الخدمة قيد التشغيل 100%
+// خادم وهمي لإرضاء منصة Render
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "text/plain" });
