@@ -38,7 +38,6 @@ function registerUser(ctx) {
   saveDB();
 }
 
-// أمر /start مع إظهار زر الإحصائيات للآدمن فقط
 bot.command("start", async (ctx) => {
   registerUser(ctx);
 
@@ -59,7 +58,6 @@ bot.command("start", async (ctx) => {
   );
 });
 
-// دالة لحساب وعرض الإحصائيات (شاملة الشهر واليوم)
 async function sendStats(ctx) {
   if (ctx.from.id !== ADMIN_ID) return;
 
@@ -139,11 +137,10 @@ bot.on("message", async (ctx) => {
     db.supportMap[forwarded.message_id] = userId;
     saveDB();
 
-    await ctx.reply("✅  تم إيصال رسالتك للإدارة، وسنرد عليك في أقرب وقت إن يسَّر الله.");
+    await ctx.reply("✅ تم إيصال رسالتك للإدارة، وسنرد عليك في أقرب وقت إن يسَّر الله.");
   }
 });
 
-// خادم وهمي لإرضاء منصة Render
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "text/plain" });
