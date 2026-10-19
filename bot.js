@@ -2,7 +2,7 @@ const { Bot, Keyboard } = require("grammy");
 const http = require("http");
 const fs = require("fs");
 
-const BOT_TOKEN = "8704729964:AAEk9uTuDbilG1loz7HD1YD8MiTBjy5pW4";
+const BOT_TOKEN = "8704729964:AAEk9uTuDbiIG1loz7HD1YD8MiTBJby5pW4";
 const ADMIN_ID = 8691612879;
 const WEB_APP_URL = "https://eclectic-zabaione-f1c24d.netlify.app/";
 
