@@ -2,7 +2,7 @@ const { Bot, Keyboard } = require("grammy");
 const http = require("http");
 const fs = require("fs");
 
-const BOT_TOKEN = "8704729964:AAGBjFRl7XNmc6oOfL4fw5Z4gEdWVO-EM3M";
+const BOT_TOKEN = "8704729964:AAEk9uTuDbilG1loz7HD1YD8MiTBjy5pW4";
 const ADMIN_ID = 8691612879;
 const WEB_APP_URL = "https://eclectic-zabaione-f1c24d.netlify.app/";
 
@@ -139,7 +139,7 @@ bot.on("message", async (ctx) => {
     db.supportMap[forwarded.message_id] = userId;
     saveDB();
 
-    await ctx.reply("✅  تم إيصال رسالتك للإدارة، وسنرد عليك في أقرب وقت إن يسَّر الله.");
+    await ctx.reply("✅  تم إيصال رسالتك للإدارة، وسنرد عليك في أقرب وقت إن يسَّر الله.");
   }
 });
 
