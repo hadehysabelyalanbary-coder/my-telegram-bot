@@ -2,9 +2,15 @@ const { Bot, Keyboard } = require("grammy");
 const http = require("http");
 const fs = require("fs");
 
-const BOT_TOKEN = "8891637753:AAGPqrc0DktRooqMDwn4EesOrpPHcXGhc6c";
+// قراءة التوكن بأمان من متغيرات البيئة
+const BOT_TOKEN = process.env.BOT_TOKEN;
 const ADMIN_ID = 8691612879;
 const WEB_APP_URL = "https://eclectic-zabaione-f1c24d.netlify.app/";
+
+if (!BOT_TOKEN) {
+  console.error("❌ خطأ: لم يتم ضبط BOT_TOKEN في متغيرات البيئة!");
+  process.exit(1);
+}
 
 const bot = new Bot(BOT_TOKEN);
 
@@ -12,7 +18,11 @@ const DB_FILE = "./database.json";
 let db = { users: {}, supportMap: {} };
 
 if (fs.existsSync(DB_FILE)) {
-  db = JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
+  try {
+    db = JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
+  } catch (e) {
+    console.error("Error reading database file:", e);
+  }
 } else {
   fs.writeFileSync(DB_FILE, JSON.stringify(db));
 }
@@ -53,33 +63,8 @@ bot.command("start", async (ctx) => {
   keyboard.resized();
 
   await ctx.reply(
-    `السلام عليكم ورحمة الله وبركاته\nأهلاً بك يا ${ctx.from.first_name} على قناة هذه سبيلي المتخصصة في نشر تراث الشيخ الأنباري تقبله الله\n\nلا تنسونا من صالح الدعاء`,
-    { reply_markup: keyboard }
-  );
-});
-
-async function sendStats(ctx) {
-  if (ctx.from.id !== ADMIN_ID) return;
-
-  const now = Date.now();
-  const oneDayAgo = now - 24 * 60 * 60 * 1000;
-  const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
-
-  const totalUsers = Object.keys(db.users).length;
-  
-  const active24h = Object.values(db.users).filter(
-    (u) => u.lastActive > oneDayAgo
-  ).length;
-
-  const active30d = Object.values(db.users).filter(
-    (u) => u.lastActive > thirtyDaysAgo
-  ).length;
-
-  await ctx.reply(
-    `📈 **إحصائيات البوت (الإدارة):**\n\n` +
-      `👥 **إجمالي المشتركين:** ${totalUsers}\n` +
-      `📅 **النشطين خلال آخر 30 يوماً:** ${active30d}\n` +
-      `⚡ **النشطين خلال آخر 24 ساعة:** ${active24h}\n\n` +
+    `السلام عليكم ورحمة الله وبركاته\nأهلاً بك يا ${ctx.from.first_name} على قناة هذه سبيلي المتخصصة في نشر تراث الشيخ الأنباري تقبله الله\n\nلا تنسونا من صالح الدعاء`, { reply_markup: keyboard } ); });  async function sendStats(ctx) { if (ctx.from.id !== ADMIN_ID) return;  const now = Date.now(); const oneDayAgo = now - 24 * 60 * 60 * 1000; const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;  const totalUsers = Object.keys(db.users).length;  const active24h = Object.values(db.users).filter( (u) => u.lastActive > oneDayAgo ).length;  const active30d = Object.values(db.users).filter( (u) => u.lastActive > thirtyDaysAgo ).length;  await ctx.reply( `📈 **إحصائيات البوت (الإدارة):**\n\n` + `👥 **إجمالي المشتركين:** ${totalUsers}\n` +
+      `📅 **النشطين خلال آخر 30 يوماً:** ${active30d}\n` + `⚡ **النشطين خلال آخر 24 ساعة:** ${active24h}\n\n` +
       `للإرسال الجماعي، قم بعمل Reply على أي رسالة واكتب \`/broadcast\``
   );
 }
@@ -102,7 +87,7 @@ bot.on("message", async (ctx) => {
     const targetUserId = db.supportMap[ctx.message.reply_to_message.message_id];
     if (targetUserId) {
       await ctx.api.copyMessage(targetUserId, ctx.chat.id, ctx.message.message_id);
-      await ctx.reply("✅ تم إرسال الرد إلى الزبون بنجاح.");
+      await ctx.reply("✅ تم إرسال الرد بنجاح.");
       return;
     }
   }
@@ -150,4 +135,4 @@ http.createServer((req, res) => {
 });
 
 bot.start();
-console.log("🤖 البوت يعمل بنجاح الان...");
+console.log("🤖 البوت يعمل بنجاح الآن...");
